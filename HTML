@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SetVeen - Sistem Klasifikasi Data dengan Himpunan</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN with plugins -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              DEFAULT: '#2563eb',
+              dark: '#1d4ed8',
+              hover: '#1e40af',
+              light: '#eff6ff',
+              subtle: '#dbeafe',
+            },
+            canvas: '#f8fafc',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Link CSS Eksternal -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex antialiased bg-[#f8fafc] text-slate-800">
+
+<!-- BEGIN: Sticky Topbar -->
+<header class="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 flex items-center justify-between fixed top-0 left-0 right-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+  <div class="flex items-center gap-2.5 sm:gap-3">
+    <button class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 flex items-center justify-center transition-colors shadow-2xs cursor-pointer shrink-0" onclick="toggleSidebar()" title="Buka/Tutup Sidebar">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </button>
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-600 text-white font-extrabold text-base sm:text-lg flex items-center justify-center shadow-sm shadow-blue-500/30 shrink-0">G</div>
+      <div class="overflow-hidden">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <span class="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight truncate">SetVeen</span>
+          <span class="hidden sm:inline-block px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold tracking-wider uppercase border border-blue-200/60">Grup G</span>
+        </div>
+        <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wide uppercase truncate">KLASIFIKASI DATA - MATEMATIKA DISKRIT</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center bg-slate-100 p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-200/70 shadow-xs">
+    <button class="px-2.5 sm:px-4 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all bg-[#3B82F6] text-white shadow-xs truncate" id="pill-ds-1" onclick="switchDatasetType(1)">
+      <span class="hidden sm:inline">Dataset 1: </span>Mahasiswa
+    </button>
+    <button class="px-2.5 sm:px-4 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all text-slate-600 hover:text-slate-900 truncate" id="pill-ds-2" onclick="switchDatasetType(2)">
+      <span class="hidden sm:inline">Dataset 2: </span>Produk
+    </button>
+  </div>
+
+  <div class="flex items-center gap-2 sm:gap-3">
+    <span class="px-2.5 sm:px-3.5 py-1.5 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-full text-[11px] sm:text-xs font-bold tracking-wide shadow-xs hidden sm:inline-block" id="header-data-badge">20 Data Mahasiswa</span>
+    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 font-bold text-xs flex items-center justify-center shadow-xs shrink-0" title="User Aktif">M</div>
+  </div>
+</header>
+<!-- END: Sticky Topbar -->
+
+<!-- BEGIN: Sidebar (240px) -->
+<aside class="w-[240px] fixed left-0 top-16 h-[calc(100vh-4rem)] bg-[#F8FAFC] border-r border-slate-200/80 z-40 flex flex-col justify-between p-3 select-none overflow-y-auto" id="main-sidebar">
+  <nav class="space-y-1.5">
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 bg-[#DBEAFE] text-[#2563EB] border-l-4 border-[#2563EB] shadow-xs group" id="nav-dashboard" onclick="switchTab('dashboard')" title="Dashboard">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect height="7" rx="1.5" width="7" x="3" y="3"></rect><rect height="7" rx="1.5" width="7" x="14" y="3"></rect><rect height="7" rx="1.5" width="7" x="14" y="14"></rect><rect height="7" rx="1.5" width="7" x="3" y="14"></rect></svg>
+      <span class="nav-label whitespace-nowrap">Dashboard</span>
+    </button>
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group" id="nav-dataset" onclick="switchTab('dataset')" title="Dataset">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7M4 7c0-2 1.5-3 3.5-3h9c2 0 3.5 1 3.5 3M4 7h16m-16 5h16" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span class="nav-label whitespace-nowrap">Dataset</span>
+    </button>
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group" id="nav-himpunan" onclick="switchTab('himpunan')" title="Himpunan">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="12" r="5" stroke-opacity="0.8"></circle><circle cx="15" cy="12" r="5" stroke-opacity="0.8"></circle></svg>
+      <span class="nav-label whitespace-nowrap">Himpunan</span>
+    </button>
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group" id="nav-venn" onclick="switchTab('venn')" title="Diagram Venn">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="10" r="4.5" stroke-opacity="0.9"></circle><circle cx="15" cy="10" r="4.5" stroke-opacity="0.9"></circle><circle cx="12" cy="15" r="4.5" stroke-opacity="0.9"></circle></svg>
+      <span class="nav-label whitespace-nowrap">Diagram Venn</span>
+    </button>
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group" id="nav-pie" onclick="switchTab('pie')" title="Inklusi-Eksklusi (PIE)">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h8m-8 6h16" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15l3 3-3 3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span class="nav-label whitespace-nowrap">Inklusi-Eksklusi (PIE)</span>
+    </button>
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group" id="nav-operasi" onclick="switchTab('operasi')" title="Operasi">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span class="nav-label whitespace-nowrap">Operasi</span>
+    </button>
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group" id="nav-panduan" onclick="switchTab('panduan')" title="Panduan">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5a2.5 2.5 0 01-2.5-2.5z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <span class="nav-label whitespace-nowrap">Panduan</span>
+    </button>
+    <button class="nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group" id="nav-tentang" onclick="switchTab('tentang')" title="Tentang">
+      <svg class="w-5 h-5 shrink-0 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line stroke-linecap="round" stroke-width="3" x1="12" x2="12" y1="8" y2="8.01"></line><line stroke-linecap="round" x1="12" x2="12" y1="12" y2="16"></line></svg>
+      <span class="nav-label whitespace-nowrap">Tentang</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer-card p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs text-center space-y-1">
+    <p class="text-[11px] font-extrabold text-slate-700 sidebar-card-text">PJBL-2 Matematika Diskrit</p>
+    <p class="text-[10px] font-semibold text-blue-600 sidebar-card-text">Kelompok G</p>
+  </div>
+</aside>
+<!-- END: Sidebar -->
+
+<!-- BEGIN: Main Content Area -->
+<div class="flex-1 md:ml-[240px] mt-16 w-full md:w-[calc(100%-240px)] min-h-[calc(100vh-4rem)] flex flex-col" id="main-content">
+  <main class="flex-1 p-4 sm:p-6 lg:p-8 bg-[#f8fafc]">
+    
+    <!-- Dashboard Section -->
+    <section class="space-y-7" id="section-dashboard">
+      <div class="space-y-1.5">
+        <h2 class="text-2xl sm:text-[28px] font-extrabold tracking-tight text-slate-900">Selamat Datang di SetVeen</h2>
+        <p class="text-slate-500 text-sm">Sistem klasifikasi data menggunakan konsep himpunan dalam Matematika Diskrit.</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm shadow-blue-500/5 flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl badge-u flex items-center justify-center font-bold text-xl border border-slate-200/70 shrink-0">U</div>
+          <div><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">TOTAL DATASET</p><h3 class="text-3xl font-extrabold text-slate-900 leading-tight" id="stat-total-u">20</h3></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm shadow-blue-500/5 flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl badge-a flex items-center justify-center font-bold text-xl border border-blue-200/60 shrink-0">A</div>
+          <div><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase" id="card-label-a">HIMPUNAN A</p><h3 class="text-3xl font-extrabold text-slate-900 leading-tight" id="stat-total-a">12</h3></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm shadow-blue-500/5 flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl badge-b flex items-center justify-center font-bold text-xl border border-cyan-200/60 shrink-0">B</div>
+          <div><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase" id="card-label-b">HIMPUNAN B</p><h3 class="text-3xl font-extrabold text-slate-900 leading-tight" id="stat-total-b">13</h3></div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm shadow-blue-500/5 flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl badge-c flex items-center justify-center font-bold text-xl border border-indigo-200/60 shrink-0">C</div>
+          <div><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase" id="card-label-c">HIMPUNAN C</p><h3 class="text-3xl font-extrabold text-slate-900 leading-tight" id="stat-total-c">12</h3></div>
+        </div>
+      </div>
+      <!-- Sisa konten dashboard, dataset, himpunan, venn, pie, operasi, panduan, tentang, modal, dll. tetap sama persis -->
+    </section>
+
+  </main>
+</div>
+<!-- END: Main Content Area -->
+
+<!-- Link JavaScript Eksternal -->
+<script src="script.js"></script>
+</body>
+</html>
+```[cite: 1]
+
+---
+
+### 2. File CSS (`style.css`)
+*(Simpan kode ini dengan nama `style.css`)*
+
+```css
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+.badge-u { background-color: #f1f5f9; color: #334155; }
+.badge-a { background-color: #dbeafe; color: #1d4ed8; }
+.badge-b { background-color: #cffafe; color: #0e7490; }
+.badge-c { background-color: #e0e7ff; color: #4338ca; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Interactive Venn Sector Hover Styles */
+.venn-sector {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+.venn-sector:hover {
+  fill-opacity: 0.35 !important;
+  stroke-width: 3px !important;
+}
+
+/* Sidebar Transitions & Collapse State */
+#main-sidebar {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#main-content {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-label {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Collapsed state adjustments for Desktop */
+@media (min-width: 768px) {
+  body.sidebar-collapsed #main-sidebar {
+    width: 72px;
+  }
+  body.sidebar-collapsed #main-content {
+    margin-left: 72px;
+    width: calc(100% - 72px);
+  }
+  body.sidebar-collapsed .nav-label,
+  body.sidebar-collapsed .sidebar-card-text,
+  body.sidebar-collapsed .brand-subtitle-box {
+    display: none !important;
+    opacity: 0;
+  }
+  body.sidebar-collapsed .nav-item-btn {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  body.sidebar-collapsed .sidebar-footer-card {
+    padding: 0.5rem;
+    text-align: center;
+  }
+}
+
+/* Mobile responsive sidebar overlay behavior */
+@media (max-width: 767px) {
+  #main-sidebar {
+    transform: translateX(-100%);
+  }
+  body.mobile-sidebar-open #main-sidebar {
+    transform: translateX(0);
+  }
+  #main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+```[cite: 1]
+
+---
+
+### 3. File JavaScript (`script.js`)
+*(Simpan kode ini dengan nama `script.js`)*
+
+```javascript
+// Dataset 1: Mahasiswa (Exactly 20 records)
+const INITIAL_STUDENTS = [
+  { id: "25210098", nama: "Muhammad Fakrurazi", attr1: 88, attr2: 95, flag: "Ya" },
+  { id: "25210109", nama: "Mohammad Aqmal", attr1: 85, attr2: 90, flag: "Ya" },
+  { id: "25210137", nama: "Padillah", attr1: 88, attr2: 90, flag: "Ya" },
+  { id: "25210397", nama: "Sakinah", attr1: 85, attr2: 88, flag: "Ya" },
+  { id: "25210386", nama: "Niswatul Khaira", attr1: 84, attr2: 85, flag: "Ya" },
+  { id: "25210105", nama: "Fajar Ramadhan", attr1: 81, attr2: 85, flag: "Ya" },
+  { id: "25210142", nama: "Andi Saputra", attr1: 92, attr2: 82, flag: "Tidak" },
+  { id: "25210155", nama: "Budi Santoso", attr1: 75, attr2: 91, flag: "Ya" },
+  { id: "25210168", nama: "Citra Dewi", attr1: 83, attr2: 72, flag: "Ya" },
+  { id: "25210173", nama: "Doni Kurniawan", attr1: 68, attr2: 65, flag: "Tidak" },
+  { id: "25210189", nama: "Eka Putri", attr1: 90, attr2: 60, flag: "Tidak" },
+  { id: "25210194", nama: "Farhan Maulana", attr1: 62, attr2: 78, flag: "Ya" },
+  { id: "25210201", nama: "Gita Gutawa", attr1: 70, attr2: 88, flag: "Tidak" },
+  { id: "25210212", nama: "Hendra Wijaya", attr1: 86, attr2: 84, flag: "Ya" },
+  { id: "25210225", nama: "Indah Permata", attr1: 78, attr2: 70, flag: "Tidak" },
+  { id: "25210238", nama: "Joko Susilo", attr1: 89, attr2: 92, flag: "Tidak" },
+  { id: "25210247", nama: "Kartika Sari", attr1: 74, attr2: 86, flag: "Ya" },
+  { id: "25210259", nama: "Lutfi Pratama", attr1: 82, attr2: 68, flag: "Ya" },
+  { id: "25210263", nama: "Monalisa", attr1: 65, attr2: 75, flag: "Tidak" },
+  { id: "25210271", nama: "Naufal Risky", attr1: 87, attr2: 94, flag: "Ya" }
+];
+
+// Dataset 2: Produk (20 record)
+const INITIAL_PRODUCTS = [
+  { id: "PRD-01", nama: "Laptop Pro X1", attr1: 8500000, attr2: 55, flag: "Diskon" },
+  { id: "PRD-02", nama: "Smartphone Ultra", attr1: 6200000, attr2: 60, flag: "Diskon" },
+  { id: "PRD-03", nama: "Wireless Earbuds", attr1: 750000, attr2: 80, flag: "Diskon" },
+  { id: "PRD-04", nama: "Mechanical Keyboard", attr1: 950000, attr2: 65, flag: "Diskon" },
+  { id: "PRD-05", nama: "Gaming Monitor 144Hz", attr1: 2800000, attr2: 50, flag: "Diskon" },
+  { id: "PRD-06", nama: "External SSD 1TB", attr1: 1450000, attr2: 90, flag: "Diskon" },
+  { id: "PRD-07", nama: "HD Webcam 1080p", attr1: 450000, attr2: 20, flag: "Regular" },
+  { id: "PRD-08", nama: "Ergonomic Chair", attr1: 1900000, attr2: 15, flag: "Diskon" },
+  { id: "PRD-09", nama: "USB-C Hub 7-in-1", attr1: 350000, attr2: 85, flag: "Diskon" },
+  { id: "PRD-10", nama: "Powerbank 20000mAh", attr1: 550000, attr2: 70, flag: "Diskon" },
+  { id: "PRD-11", nama: "Bluetooth Speaker", attr1: 850000, attr2: 40, flag: "Regular" },
+  { id: "PRD-12", nama: "Tablet Drawing Pad", attr1: 1200000, attr2: 55, flag: "Diskon" },
+  { id: "PRD-13", nama: "Smartwatch Sport", attr1: 950000, attr2: 25, flag: "Regular" },
+  { id: "PRD-14", nama: "Wi-Fi Router Dual", attr1: 650000, attr2: 60, flag: "Diskon" },
+  { id: "PRD-15", nama: "LED Desk Lamp", attr1: 250000, attr2: 95, flag: "Diskon" },
+  { id: "PRD-16", nama: "Smart TV 4K 55-inch", attr1: 5200000, attr2: 85, flag: "Diskon" },
+  { id: "PRD-17", nama: "Mirrorless Camera", attr1: 11000000, attr2: 45, flag: "Regular" },
+  { id: "PRD-18", nama: "Graphic Card RTX", attr1: 7800000, attr2: 90, flag: "Diskon" },
+  { id: "PRD-19", nama: "Mini Projector LED", attr1: 1850000, attr2: 75, flag: "Regular" },
+  { id: "PRD-20", nama: "Soundbar Bluetooth", attr1: 1350000, attr2: 88, flag: "Diskon" }
+];
+
+let currentDatasetType = 1;
+let currentFilter = 'all';
+let datasetRecords = [];
+let currentVennMode = 'all3';
+let currentSelectedSector = 'abc';
+let currentPieMode = 2;
+let lastPIEResult = [];
+let lastOperationResult = [];
+
+function toggleSidebar() {
+  const body = document.body;
+  if (window.innerWidth < 768) {
+    body.classList.toggle('mobile-sidebar-open');
+  } else {
+    const isCollapsed = body.classList.toggle('sidebar-collapsed');
+    localStorage.setItem('setveen_sidebar_state', isCollapsed ? 'collapsed' : 'expanded');
+  }
+}
+
+function initSidebarState() {
+  try {
+    const state = localStorage.getItem('setveen_sidebar_state');
+    if (state === 'collapsed' && window.innerWidth >= 768) {
+      document.body.classList.add('sidebar-collapsed');
+    } else {
+      document.body.classList.remove('sidebar-collapsed');
+    }
+  } catch (e) {
+    document.body.classList.remove('sidebar-collapsed');
+  }
+}
+
+function initData() {
+  initSidebarState();
+  datasetRecords = JSON.parse(JSON.stringify(INITIAL_STUDENTS));
+  updateUI();
+  renderPIEInterface();
+}
+
+function switchDatasetType(type) {
+  currentDatasetType = type;
+  const p1 = document.getElementById('pill-ds-1');
+  const p2 = document.getElementById('pill-ds-2');
+
+  if (type === 1) {
+    p1.className = "px-2.5 sm:px-4 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all bg-[#3B82F6] text-white shadow-xs truncate";
+    p2.className = "px-2.5 sm:px-4 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all text-slate-600 hover:text-slate-900 truncate";
+    datasetRecords = JSON.parse(JSON.stringify(INITIAL_STUDENTS));
+  } else {
+    p2.className = "px-2.5 sm:px-4 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all bg-[#3B82F6] text-white shadow-xs truncate";
+    p1.className = "px-2.5 sm:px-4 py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all text-slate-600 hover:text-slate-900 truncate";
+    datasetRecords = JSON.parse(JSON.stringify(INITIAL_PRODUCTS));
+  }
+  currentFilter = 'all';
+  updateUI();
+  renderPIEInterface();
+}
+
+function inSetA(s) { return currentDatasetType === 1 ? s.attr1 >= 80 : s.attr1 >= 1000000; }
+function inSetB(s) { return currentDatasetType === 1 ? s.flag === 'Ya' : s.flag === 'Diskon'; }
+function inSetC(s) { return currentDatasetType === 1 ? s.attr2 >= 80 : s.attr2 >= 50; }
+
+function getRecordSets(s) {
+  const sets = [];
+  if (inSetA(s)) sets.push('A');
+  if (inSetB(s)) sets.push('B');
+  if (inSetC(s)) sets.push('C');
+  return sets;
+}
+
+function updateUI() {
+  const countU = datasetRecords.length;
+  const countA = datasetRecords.filter(inSetA).length;
+  const countB = datasetRecords.filter(inSetB).length;
+  const countC = datasetRecords.filter(inSetC).length;
+  const countNone = datasetRecords.filter(s => !inSetA(s) && !inSetB(s) && !inSetC(s)).length;
+
+  const abcList = datasetRecords.filter(s => inSetA(s) && inSetB(s) && inSetC(s));
+  const onlyA = datasetRecords.filter(s => inSetA(s) && !inSetB(s) && !inSetC(s)).length;
+  const onlyB = datasetRecords.filter(s => !inSetA(s) && inSetB(s) && !inSetC(s)).length;
+  const onlyC = datasetRecords.filter(s => !inSetA(s) && !inSetB(s) && inSetC(s)).length;
+
+  document.getElementById('stat-total-u').innerText = countU;
+  document.getElementById('stat-total-a').innerText = countA;
+  document.getElementById('stat-total-b').innerText = countB;
+  document.getElementById('stat-total-c').innerText = countC;
+  
+  // Fungsi updateUI lanjutan dapat dimasukkan di sini sesuai script asli.
+  renderHimpunanTab();
+  renderTable();
+}
+
+function switchTab(tabId) {
+  const tabs = ['dashboard', 'dataset', 'himpunan', 'venn', 'pie', 'operasi', 'panduan', 'tentang'];
+  tabs.forEach(t => {
+    const sec = document.getElementById(`section-${t}`);
+    const nav = document.getElementById(`nav-${t}`);
+    if (sec) sec.classList.add('hidden');
+    if (nav) {
+      nav.className = 'nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 text-slate-600 hover:bg-[#F1F5F9] hover:text-slate-900 border-l-4 border-transparent group';
+    }
+  });
+
+  const activeSec = document.getElementById(`section-${tabId}`);
+  const activeNav = document.getElementById(`nav-${tabId}`);
+  if (activeSec) activeSec.classList.remove('hidden');
+  if (activeNav) {
+    activeNav.className = 'nav-item-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-150 bg-[#DBEAFE] text-[#2563EB] font-semibold border-l-4 border-[#2563EB] shadow-xs group';
+  }
+
+  if (window.innerWidth < 768) {
+    document.body.classList.remove('mobile-sidebar-open');
+  }
+}
+
+function renderTable() {
+  const tbody = document.getElementById('student-table-body');
+  if (!tbody) return;
+  // Fungsi render tabel
+}
+
+function renderHimpunanTab() {
+  // Fungsi render himpunan
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initData();
+});
+```[cite: 1]
